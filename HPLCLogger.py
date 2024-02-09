@@ -11,13 +11,14 @@ import serial
 import time
 
 def main(args):
-    # open serial port, send "psi" command every second, and read response to CSV. Include timestamp with each response.
+    # open serial port, send "psi" command every second, and read response to CSV file. Include timestamp with each response.
     with serial.Serial(args.device, 9600, timeout=1) as ser:
         while True:
             ser.write(b"psi\r")
-            time.sleep(1)
             response = ser.readline()
-            print("{},{}".format(time.time(), response.decode("utf-8").rstrip()))
+            with open("HPLCLog.csv", "a") as f:
+                f.write(str(time.time()) + "," + response.decode("utf-8"))
+            time.sleep(args.interval)
     
 
 
@@ -25,14 +26,9 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    # Required positional argument
-    parser.add_argument("arg", help="Required positional argument")
-
-    # Optional argument flag which defaults to False
-    parser.add_argument("-f", "--flag", action="store_true", default=False)
-
-    # Optional argument which requires a parameter (eg. -d test)
+    # Optional argument which requires a parameter
     parser.add_argument("-d", "--device", action="store", dest="device", default="/dev/ttyUSB0", help="Set device to log from")
+    parser.add_argument("-i", "--interval", action="store", dest="interval", type=int, default="1", help="Set interval to log data in seconds")
 
     # Specify output of "--version"
     parser.add_argument(
